@@ -20,6 +20,25 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; }
+.resume-form { display: grid; gap: 1rem; align-items: start; }
+.resume-form label, .draft-label { display: grid; gap: .5rem; min-width: 0; font-weight: 650; }
+.resume-form button { justify-self: start; }
+.resume-form textarea, .draft-label textarea {
+  width: 100%;
+  padding: .75rem;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+  resize: vertical;
+}
+.resume-actions { margin-top: 1rem; }
+@media (min-width: 48rem) {
+  .resume-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+#detail-resume { margin-inline-start: 1rem; }
 html { scrollbar-gutter: stable; }
 body:has(#job-details[open]) { overflow: hidden; }
 .sr-only {

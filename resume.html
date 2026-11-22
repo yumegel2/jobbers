@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tailor your résumé to a job posting in your browser.">
+  <title>Jobbers | Résumé Tailoring</title>
+  <link rel="stylesheet" href="./site.css">
+  <script src="./resume.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="top"><div class="wrap top-inner">
+    <a class="brand" href="./"><span aria-hidden="true">J</span> Jobbers</a>
+    <nav aria-label="Main navigation"><a href="./">Job board</a><a href="./signals.html">Early hiring signals</a><a href="./resume.html" aria-current="page">Résumé tailoring</a></nav>
+  </div></header>
+  <main class="wrap" id="main" tabindex="-1">
+    <section class="hero">
+      <div><h1>Tailor your résumé</h1><p>Compare a posting with your experience and bring your most relevant bullets to the top.</p></div>
+      <a href="./doc/Resume_Formats_and_Tailoring.md">Résumé guide</a>
+    </section>
+    <section aria-labelledby="compare-title">
+      <h2 id="compare-title">Compare your résumé and posting</h2>
+      <p class="note">Your résumé stays in this tab. Jobbers processes it on your device.</p>
+      <form id="resume-form" class="resume-form">
+        <label>Job posting<textarea id="target-posting" rows="10" required placeholder="Paste the responsibilities and qualifications"></textarea></label>
+        <label>Your résumé<textarea id="source-resume" rows="10" required placeholder="Paste your résumé, with one bullet per line"></textarea></label>
+        <button type="submit">Create tailored draft</button>
+      </form>
+      <p id="resume-status" class="note" role="status"></p>
+    </section>
+    <section id="resume-results" aria-labelledby="draft-title" hidden>
+      <h2 id="draft-title" tabindex="-1">Your tailored draft</h2>
+      <p class="note">Review the suggested evidence and edit your draft before sending it. Matches are based on shared terms.</p>
+      <ul id="requirement-matches" class="job-list"></ul>
+      <label class="draft-label">Editable résumé<textarea id="tailored-resume" rows="15"></textarea></label>
+      <div class="job-actions resume-actions">
+        <button id="copy-resume" type="button">Copy draft</button>
+        <button id="download-resume" class="save-job" type="button">Download text</button>
+      </div>
+      <p id="export-status" class="note" role="status"></p>
+    </section>
+  </main>
+  <footer class="wrap"><a href="./doc/Requirements.md">AI job requirements</a></footer>
+</body>
+</html>

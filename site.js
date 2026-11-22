@@ -428,6 +428,21 @@ function openJobDetails(job, opener) {
   byId("detail-description").replaceChildren(description);
   byId("detail-full").open = false;
   byId("detail-full").hidden = Boolean(job.reviewed);
+  byId("detail-resume").onclick = () => {
+    const posting = employerDescription(job);
+    const lines = Array.from(posting.querySelectorAll("h3, p, li"))
+      .filter((node) => !node.parentElement?.closest("li"))
+      .map((node) => (node.localName === "li" ? "- " : "") + node.textContent.trim());
+    const body = job.summary || lines.join("\n").trim() || posting.textContent.trim();
+    try {
+      sessionStorage.setItem("jobbers-resume-posting", JSON.stringify({
+        title: `${job.title} at ${job.company}`,
+        text: [job.title, job.company, body].join("\n\n"),
+      }));
+    } catch {
+      // The résumé page also accepts pasted postings.
+    }
+  };
   jobDetails.showModal();
   byId("detail-title").focus();
   jobDetails.scrollTop = 0;
