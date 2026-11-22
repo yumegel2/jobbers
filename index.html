@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Track public AI job postings and early hiring signals.">
+  <title>Jobbers | AI Job Tracker</title>
+  <link rel="stylesheet" href="./site.css">
+  <script src="./metro-places.js" defer></script>
+  <script src="./site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="top"><div class="wrap top-inner">
+    <a class="brand" href="./"><span aria-hidden="true">J</span> Jobbers</a>
+    <nav aria-label="Main navigation"><a href="./" aria-current="page">Job board</a><a href="./signals.html">Early hiring signals</a></nav>
+  </div></header>
+  <main class="wrap" id="main" tabindex="-1">
+    <section class="hero">
+      <div><h1>NYC metro AI job tracker</h1><p>Find open AI roles with a New York City metro location.</p></div>
+      <button id="refresh" type="button">Refresh jobs</button>
+    </section>
+    <section id="jobs" aria-labelledby="jobs-heading">
+      <div class="section-heading"><h2 id="jobs-heading">Open roles</h2><p id="feed-status" role="status"></p></div>
+      <div class="filters">
+        <label>Search jobs<input type="search" id="search" placeholder="Title, company, or location"></label>
+        <form id="zip-search" class="zip-search">
+          <label>ZIP code<input id="zip-code" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="e.g. 10001" aria-describedby="zip-status"></label>
+          <label>Distance<select id="zip-radius"><option value="5">5 miles</option><option value="10">10 miles</option><option value="25" selected>25 miles</option><option value="50">50 miles</option></select></label>
+          <button type="submit" class="save-job">Find nearby jobs</button>
+          <p id="zip-status" class="meta" role="status"></p>
+        </form>
+        <label>Role<select id="role"><option value="">All roles</option></select></label>
+        <label>Location area<select id="location-area"><option value="">All NYC metro locations</option><option value="nyc">New York City only</option><option value="suburbs">NYC metro outside the city</option></select></label>
+        <label>Work arrangement<select id="workplace"><option value="">Any arrangement</option><option value="On-site">On-site</option><option value="Hybrid">Hybrid</option><option value="Remote">Remote</option></select></label>
+        <label>Sort by<select id="sort"><option value="discovered">New to Jobbers</option><option value="distance" disabled>Nearest first</option><option value="published">Most recently published</option><option value="title">Job title A–Z</option></select></label>
+        <label>Published<select id="published"><option value="">Any date</option><option value="1">Past 24 hours</option><option value="7">Past week</option><option value="30">Past month</option></select></label>
+        <label class="check"><input type="checkbox" id="new-only"> New since first check</label>
+        <label class="check"><input type="checkbox" id="saved-only"> Saved jobs only</label>
+      </div>
+      <p class="note">New marks jobs found in the past seven days after your first check. Date and work arrangement filters use employer-provided details. Saved jobs are stored in this browser and shown while listed.</p>
+      <div class="results-toolbar">
+        <p id="results"></p>
+        <div id="active-filters" class="active-filters" aria-label="Active filters" role="group" hidden></div>
+      </div>
+      <p id="results-announcement" class="sr-only" role="status"></p>
+      <div id="results-help" class="results-help" hidden>
+        <p id="results-hint"></p>
+        <button id="results-action" class="save-job" type="button"></button>
+      </div>
+      <p id="save-status" class="meta" role="status"></p>
+      <ul id="job-list" class="job-list"></ul>
+      <button id="more" type="button" hidden>Show more jobs</button>
+    </section>
+  </main>
+  <dialog id="job-details" aria-labelledby="detail-title">
+    <div class="detail-header">
+      <div>
+        <p id="detail-company" class="job-company"></p>
+        <h2 id="detail-title" tabindex="-1"></h2>
+      </div>
+      <form method="dialog"><button class="save-job">Close</button></form>
+    </div>
+    <dl class="job-facts">
+      <div><dt>Salary</dt><dd id="detail-pay"></dd></div>
+      <div><dt>Location</dt><dd id="detail-location"></dd></div>
+      <div><dt>Work arrangement</dt><dd id="detail-workplace"></dd></div>
+    </dl>
+    <a id="detail-posting" href="#" target="_blank" rel="noopener noreferrer">View employer posting</a>
+    <div id="detail-summary" class="detail-description"></div>
+    <h3>How to apply</h3>
+    <p>Use the employer’s posting to review instructions and apply.</p>
+    <a id="detail-apply" href="#" target="_blank" rel="noopener noreferrer">Apply on employer site</a>
+    <details id="detail-full">
+      <summary>Full employer description</summary>
+      <div id="detail-description" class="detail-description"></div>
+    </details>
+  </dialog>
+  <footer class="wrap"><a href="./doc/Requirements.md">AI job requirements</a><a href="./doc/Finding_Jobs_Before_They_Are_Posted.md">Find jobs before they’re posted</a></footer>
+</body>
+</html>

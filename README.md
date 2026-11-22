@@ -2,13 +2,21 @@
 
 Welcome to the **Modern AI Roles & Engineering Guide** repository.
 
+## Job tracker
+
+From the repository root, run `python -m http.server 8000 --bind 127.0.0.1` and open [Jobbers](http://127.0.0.1:8000). Any static host that serves the repository root also works.
+
+Nearby search uses `zip-coordinates.json`, generated from the [2025 U.S. Census ZIP Code Tabulation Area Gazetteer](https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.2025.html). The browser calculates straight-line distances to approximate job locations using the coordinates served by Jobbers.
+
+The site checks 12 public employer boards on load, on demand, and every 15 minutes while the tab is visible. It matches titles and team names to the [seven AI roles](./doc/AI_JOB_ROLES.md) and requires a recognized NYC metro location. Individually reviewed listings show a check date and expire after a week. See [Jobbers features](./doc/Jobbers_Features.md) for the feed list.
+
 This project contains research, role breakdowns, and architectural comparisons for the latest specialized artificial intelligence jobs across frontier labs (OpenAI, Anthropic, DeepMind), enterprise platforms (Palantir, Scale AI), and high-growth AI startups.
 
 ---
 
 ## 📑 Core Documentation
 
-- **[AI_JOB_ROLES.md](./AI_JOB_ROLES.md)**: The complete comprehensive guide covering:
+- **[AI_JOB_ROLES.md](./doc/AI_JOB_ROLES.md)**: The complete comprehensive guide covering:
   - **Forward Deployed Engineer (FDE / FDSE)** (The benchmark role)
   - **AI Engineer (Product & Application)**
   - **Agentic AI Engineer (Autonomous Systems)**
@@ -36,5 +44,5 @@ This project contains research, role breakdowns, and architectural comparisons f
 ---
 
 ## 🛠️ Repository Information
-- **Origin Remote:** `https://github.com/yumegel2/YOUR_REPO_NAME.git`
-- **Primary Guide:** [AI_JOB_ROLES.md](file:///C:/Users/stell/.gemini/antigravity/scratch/YOUR_REPO_NAME/AI_JOB_ROLES.md)
+- **Origin Remote:** [yumegel2/jobbers](https://github.com/yumegel2/jobbers)
+- **Primary Guide:** [AI_JOB_ROLES.md](./doc/AI_JOB_ROLES.md)
