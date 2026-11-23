@@ -171,10 +171,30 @@ function pdfPageLines(items) {
   return output.join("\n");
 }
 
+async function loadPdfReader() {
+  if (window.location.protocol === "file:") {
+    if (!globalThis.pdfjsLib || !globalThis.pdfjsWorker) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "./vendor/pdfjs/pdf.local.min.js";
+        script.onload = resolve;
+        script.onerror = () => {
+          script.remove();
+          reject(new Error("The local PDF reader could not load. Use the published Jobbers résumé page or serve the full repository over HTTP."));
+        };
+        document.head.append(script);
+      });
+    }
+    return globalThis.pdfjsLib;
+  }
+  const pdfReader = await import("./vendor/pdfjs/pdf.min.mjs");
+  pdfReader.GlobalWorkerOptions.workerSrc = new URL("./vendor/pdfjs/pdf.worker.min.mjs", document.baseURI).href;
+  return pdfReader;
+}
+
 async function readResumePdf(file) {
   if (file.size > 20 * 1024 * 1024) throw new Error("Choose a PDF smaller than 20 MB.");
-  const { getDocument, GlobalWorkerOptions } = await import("./vendor/pdfjs/pdf.min.mjs");
-  GlobalWorkerOptions.workerSrc = new URL("./vendor/pdfjs/pdf.worker.min.mjs", document.baseURI).href;
+  const { getDocument } = await loadPdfReader();
   const task = getDocument({ data: await file.arrayBuffer(), isEvalSupported: false, useWasm: false });
   try {
     const pdf = await task.promise;
