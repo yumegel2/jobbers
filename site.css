@@ -39,6 +39,24 @@ body { margin: 0; }
   .resume-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 #detail-resume { margin-inline-start: 1rem; }
+.print-resume { display: none; }
+@media print {
+  @page { size: letter; margin: .65in .7in; }
+  :root:has(.printing-resume) { color-scheme: light; background: white; color: black; }
+  body.printing-resume > :not(.print-resume) { display: none !important; }
+  body.printing-resume .print-resume {
+    display: block;
+    background: white;
+    color: black;
+    font: 11pt/1.35 Arial, sans-serif;
+    overflow-wrap: anywhere;
+  }
+  .print-resume h1, .print-resume h2 { margin: 0 0 3pt; break-after: avoid; letter-spacing: normal; }
+  .print-resume h1 { font: bold 18pt/1.2 Arial, sans-serif; }
+  .print-resume h2 { margin-top: 9pt; font: bold 12pt/1.25 Arial, sans-serif; }
+  .print-resume p { margin: 0 0 2pt; widows: 2; orphans: 2; }
+  .print-resume .print-space { height: 5pt; margin: 0; }
+}
 html { scrollbar-gutter: stable; }
 body:has(#job-details[open]) { overflow: hidden; }
 .sr-only {

@@ -35,12 +35,14 @@
       <ul id="requirement-matches" class="job-list"></ul>
       <label class="draft-label">Editable résumé<textarea id="tailored-resume" rows="15"></textarea></label>
       <div class="job-actions resume-actions">
-        <button id="copy-resume" type="button">Copy draft</button>
+        <button id="save-resume-pdf" type="button">Save as PDF</button>
+        <button id="copy-resume" class="save-job" type="button">Copy draft</button>
         <button id="download-resume" class="save-job" type="button">Download text</button>
       </div>
       <p id="export-status" class="note" role="status"></p>
     </section>
   </main>
   <footer class="wrap"><a href="./doc/Requirements.md">AI job requirements</a></footer>
+  <article id="print-resume" class="print-resume" aria-label="Résumé"></article>
 </body>
 </html>

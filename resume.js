@@ -138,6 +138,37 @@ document.getElementById("copy-resume").addEventListener("click", async () => {
   }
 });
 
+const printResume = document.getElementById("print-resume");
+const resumeHeading = /^(?:(?:professional |work |relevant )?experience|(?:technical )?skills|(?:selected )?projects|education|(?:professional )?summary|certifications|publications|awards|volunteer experience)\s*:?$/i;
+
+function prepareResumePrint() {
+  const lines = draft.value.trim().split(/\r?\n/);
+  const formatted = lines.map((line, index) => {
+    const text = line.trim();
+    const heading = resumeHeading.test(text);
+    const isName = index === 0 && !heading && !bullet.test(text) && text.length <= 80;
+    const block = document.createElement(heading ? "h2" : isName ? "h1" : "p");
+    if (!text) block.className = "print-space";
+    block.textContent = text;
+    return block;
+  });
+  printResume.replaceChildren(...formatted);
+  document.body.classList.toggle("printing-resume", Boolean(draft.value.trim()));
+}
+
+window.addEventListener("beforeprint", prepareResumePrint);
+window.addEventListener("afterprint", () => document.body.classList.remove("printing-resume"));
+document.getElementById("save-resume-pdf").addEventListener("click", () => {
+  if (!draft.value.trim()) {
+    exportStatus.textContent = "Add résumé text to the draft before saving a PDF.";
+    draft.focus();
+    return;
+  }
+  exportStatus.textContent = "In the print dialog, choose Save as PDF and turn off headers and footers.";
+  prepareResumePrint();
+  window.print();
+});
+
 document.getElementById("download-resume").addEventListener("click", () => {
   const url = URL.createObjectURL(new Blob([draft.value], { type: "text/plain;charset=utf-8" }));
   const link = document.createElement("a");
