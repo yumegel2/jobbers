@@ -258,6 +258,7 @@ document.getElementById("resume-form").addEventListener("submit", async (event) 
   });
   document.getElementById("requirement-matches").replaceChildren(...items);
   draft.value = text;
+  updateResumePreview();
   exportStatus.textContent = "";
   document.getElementById("resume-results").hidden = false;
   document.getElementById("resume-status").textContent = requirements.length
@@ -268,7 +269,7 @@ document.getElementById("resume-form").addEventListener("submit", async (event) 
 
 document.getElementById("copy-resume").addEventListener("click", async () => {
   try {
-    await navigator.clipboard.writeText(draft.value);
+    await navigator.clipboard.writeText(formattedResume().join("\n"));
     exportStatus.textContent = "Draft copied.";
   } catch {
     draft.focus();
@@ -278,10 +279,33 @@ document.getElementById("copy-resume").addEventListener("click", async () => {
 });
 
 const printResume = document.getElementById("print-resume");
+const templateSelect = document.getElementById("resume-template");
+const fontSelect = document.getElementById("resume-font");
+const spacingSelect = document.getElementById("resume-spacing");
+const previewNote = document.getElementById("preview-note");
 const resumeHeading = /^(?:(?:professional |work |relevant )?experience|(?:technical )?skills|(?:selected )?projects|education|(?:professional )?summary|certifications|publications|awards|volunteer experience)\s*:?$/i;
 
-function prepareResumePrint() {
-  const lines = draft.value.trim().split(/\r?\n/);
+function formattedResume() {
+  const lines = draft.value.trim() ? draft.value.trim().split(/\r?\n/) : [];
+  if (templateSelect.value !== "projects") return lines;
+  const experience = lines.findIndex((line) => /^(?:(?:professional|work|relevant) )?experience:?$/i.test(line.trim()));
+  const projects = lines.findIndex((line) => /^(?:selected )?projects:?$/i.test(line.trim()));
+  if (experience < 0 || projects < 0 || projects < experience) return lines;
+  const nextHeading = lines.findIndex((line, index) => index > projects && resumeHeading.test(line.trim()));
+  const section = lines.splice(projects, nextHeading < 0 ? lines.length - projects : nextHeading - projects);
+  while (section.at(-1)?.trim() === "") section.pop();
+  lines.splice(experience, 0, ...section, "");
+  return lines;
+}
+
+function updateResumePreview() {
+  const lines = formattedResume();
+  printResume.dataset.font = fontSelect.value;
+  printResume.dataset.spacing = spacingSelect.value;
+  const projectsMissing = templateSelect.value === "projects" && !lines.some((line) => /^(?:selected )?projects:?$/i.test(line.trim()));
+  previewNote.textContent = projectsMissing
+    ? "Add a Projects heading to move that section ahead of Experience. Review page breaks in print preview."
+    : "Review final page breaks in the browser’s print preview.";
   const formatted = lines.map((line, index) => {
     const text = line.trim();
     const heading = resumeHeading.test(text);
@@ -292,6 +316,14 @@ function prepareResumePrint() {
     return block;
   });
   printResume.replaceChildren(...formatted);
+}
+
+for (const control of [draft, templateSelect, fontSelect, spacingSelect]) {
+  control.addEventListener("input", updateResumePreview);
+}
+
+function prepareResumePrint() {
+  updateResumePreview();
   document.body.classList.toggle("printing-resume", Boolean(draft.value.trim()));
 }
 
@@ -309,7 +341,7 @@ document.getElementById("save-resume-pdf").addEventListener("click", () => {
 });
 
 document.getElementById("download-resume").addEventListener("click", () => {
-  const url = URL.createObjectURL(new Blob([draft.value], { type: "text/plain;charset=utf-8" }));
+  const url = URL.createObjectURL(new Blob([formattedResume().join("\n")], { type: "text/plain;charset=utf-8" }));
   const link = document.createElement("a");
   link.href = url;
   link.download = "tailored-resume.txt";

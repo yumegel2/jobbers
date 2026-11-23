@@ -58,23 +58,55 @@ body { margin: 0; }
   .resume-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 #detail-resume { margin-inline-start: 1rem; }
-.print-resume { display: none; }
+.resume-design {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: .75rem;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+}
+.resume-design legend { padding-inline: .25rem; font-weight: 700; }
+.resume-design label { display: grid; min-width: 0; gap: .25rem; }
+.print-resume {
+  --resume-font: Arial, sans-serif;
+  --resume-leading: 1.35;
+  --resume-paragraph-gap: 2pt;
+  color-scheme: light;
+  width: min(100%, 8.5in);
+  margin-inline: auto;
+  padding: clamp(1rem, 6vw, .7in);
+  background: white;
+  color: black;
+  font: 11pt/var(--resume-leading) var(--resume-font);
+  overflow-wrap: anywhere;
+}
+.print-resume[data-font="serif"] { --resume-font: "Times New Roman", serif; }
+.print-resume[data-spacing="compact"] { --resume-leading: 1.2; --resume-paragraph-gap: 1pt; }
+.print-resume h1, .print-resume h2 { margin: 0 0 3pt; break-after: avoid; letter-spacing: normal; }
+.print-resume h1 { font: bold 18pt/1.2 var(--resume-font); }
+.print-resume h2 { margin-top: 9pt; font: bold 12pt/1.25 var(--resume-font); }
+.print-resume p { margin: 0 0 var(--resume-paragraph-gap); widows: 2; orphans: 2; }
+.print-resume .print-space { height: 5pt; margin: 0; }
 @media print {
-  @page { size: letter; margin: .65in .7in; }
+  @page jobbers-resume { size: letter; margin: .65in .7in; }
   :root:has(.printing-resume) { color-scheme: light; background: white; color: black; }
-  body.printing-resume > :not(.print-resume) { display: none !important; }
-  body.printing-resume .print-resume {
-    display: block;
-    background: white;
-    color: black;
-    font: 11pt/1.35 Arial, sans-serif;
-    overflow-wrap: anywhere;
+  body.printing-resume > :not(main),
+  body.printing-resume main > :not(#resume-results),
+  body.printing-resume #resume-results > :not(#resume-preview),
+  body.printing-resume #resume-preview > :not(.print-resume) { display: none !important; }
+  body.printing-resume :is(main, #resume-results, #resume-preview) {
+    width: auto;
+    margin: 0;
   }
-  .print-resume h1, .print-resume h2 { margin: 0 0 3pt; break-after: avoid; letter-spacing: normal; }
-  .print-resume h1 { font: bold 18pt/1.2 Arial, sans-serif; }
-  .print-resume h2 { margin-top: 9pt; font: bold 12pt/1.25 Arial, sans-serif; }
-  .print-resume p { margin: 0 0 2pt; widows: 2; orphans: 2; }
-  .print-resume .print-space { height: 5pt; margin: 0; }
+  body.printing-resume .print-resume {
+    page: jobbers-resume;
+    width: auto;
+    margin: 0;
+    padding: 0;
+  }
 }
 html { scrollbar-gutter: stable; }
 body:has(#job-details[open]) { overflow: hidden; }

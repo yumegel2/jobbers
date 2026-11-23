@@ -37,6 +37,17 @@
       <p class="note">Review the wording and reading order before saving. Jobbers uses shared terms to prioritize experience and makes wording edits using only your existing résumé.</p>
       <ul id="requirement-matches" class="job-list"></ul>
       <label class="draft-label">Editable résumé<textarea id="tailored-resume" rows="15"></textarea></label>
+      <fieldset class="resume-design">
+        <legend>Template and styling</legend>
+        <label>Template<select id="resume-template"><option value="classic">Classic</option><option value="projects">Projects First</option></select></label>
+        <label>Font<select id="resume-font"><option value="sans">Arial</option><option value="serif">Times New Roman</option></select></label>
+        <label>Spacing<select id="resume-spacing"><option value="standard">Standard</option><option value="compact">Compact</option></select></label>
+      </fieldset>
+      <section id="resume-preview" aria-labelledby="preview-title">
+        <h3 id="preview-title">Résumé preview</h3>
+        <p id="preview-note" class="note">Review final page breaks in the browser’s print preview.</p>
+        <article id="print-resume" class="print-resume" aria-label="Formatted résumé"></article>
+      </section>
       <div class="job-actions resume-actions">
         <button id="save-resume-pdf" type="button">Save as PDF</button>
         <button id="copy-resume" class="save-job" type="button">Copy draft</button>
@@ -46,6 +57,5 @@
     </section>
   </main>
   <footer class="wrap"><a href="./doc/Requirements.md">AI job requirements</a></footer>
-  <article id="print-resume" class="print-resume" aria-label="Résumé"></article>
 </body>
 </html>

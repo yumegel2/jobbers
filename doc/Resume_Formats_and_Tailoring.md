@@ -7,6 +7,22 @@ Use a **single-column, reverse-chronological résumé** for most AI engineering 
 - Use standard headings such as **Experience**, **Skills**, **Projects**, and **Education**. Put contact information at the top of the document body. Tables, columns, graphics, and text boxes can cause parsing problems. [Greenhouse résumé parsing guidance](https://support.greenhouse.io/hc/en-us/articles/200989175-Unsuccessful-resume-parse)
 - Use one page if your strongest evidence fits comfortably. Use two when relevant experience warrants it. Follow the employer’s file instructions. If none are given, send a PDF with selectable text and keep a DOCX copy. [CareerOneStop résumé formatting guide](https://cloudfront.careeronestop.org/JobSearch/Resumes/ResumeGuide/formatting.aspx)
 
+## How résumé builders handle templates and styling
+
+Reviewed November 22, 2026. These builders let candidates edit their experience and adjust the design separately, so changing the template preserves the résumé content.
+
+| Builder | Format and styling workflow |
+| --- | --- |
+| Teal | Choose a template and see it applied in a live preview. Adjust section order, date and location formats, font, line height, margins, and paper size. [Teal Resume Designer](https://help.tealhq.com/en/articles/9508951-getting-started-resume-designer), [Teal Presentation tab](https://help.tealhq.com/en/articles/9510029-presentation-tab) |
+| Kickresume | Edit content by section. Switch templates from the Design tab and adjust font, size, line spacing, heading capitalization, or Letter/A4 paper size. Some templates carry an ATS optimization label. [Kickresume editor guide](https://www.kickresume.com/en/help-center/resume/) |
+| Reactive Resume | Edit and review the document beside a live preview. Switch between one- and two-column templates, adjust typography and spacing, and export to PDF or Word. [Reactive Resume builder](https://rxresu.me/), [Template examples](https://rxresu.me/resume-templates) |
+
+### Design direction for Jobbers
+
+- **Offer two single-column layouts.** Use **Classic** for reverse-chronological experience. Use **Projects First** for candidates whose strongest AI work is in projects, while keeping dated work history in an **Experience** section.
+- **Keep styling controls focused.** Start with US Letter, an 11-point body font, bold 12-point section headings, black text, and roughly 0.7-inch margins. Offer a small font and spacing choice. Keep contact information in the main reading order, with standard headings and plain bullets. These are Jobbers defaults based on the research. [CareerOneStop formatting guide](https://cloudfront.careeronestop.org/JobSearch/Resumes/ResumeGuide/formatting.aspx), [Greenhouse parsing guidance](https://support.greenhouse.io/hc/en-us/articles/200989175-Unsuccessful-resume-parse)
+- **Preview the export before saving.** Use the same layout for preview and PDF so candidates can check page breaks and keep section headings with their content. Verify that the exported text can be selected and copied in the expected order. [Reactive Resume template examples](https://rxresu.me/resume-templates)
+
 ## Tailor it to each posting
 
 1. **Pick the three to five requirements that define the job.** Start with core responsibilities and required qualifications.
