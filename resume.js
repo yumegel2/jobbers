@@ -28,17 +28,17 @@ function requirementsFrom(posting) {
   for (const raw of posting.split(/\r?\n/)) {
     const line = raw.trim();
     if (!line) continue;
-    const heading = line.replace(/^#+\s*/, "").replace(/:$/, "");
+    const heading = line.replace(/^#+\s*/, "").replace(/:$/, "").trim().replace(/\s+/g, " ");
     if (!bullet.test(line) && heading.length < 80) {
       if (/^preferred qualifications|^nice to have|^bonus points/i.test(heading)) {
         section = preferred;
         continue;
       }
-      if (/^(?:key responsibilities|responsibilities|what you(?:’|')ll do)$/i.test(heading)) {
+      if (/^(?:(?:key |core |job )?responsibilities|what you(?:’|')ll (?:do|be doing)|in this role(?:,? you will)?|about (?:the |this )?role)$/i.test(heading)) {
         section = duties;
         continue;
       }
-      if (/^(?:(?:minimum |required )?(?:qualifications|requirements|skills)|what you(?:’|')ll bring|what we(?:’|')re looking for)$/i.test(heading)) {
+      if (/^(?:(?:minimum |basic |required )?(?:qualifications|requirements|skills)|what you(?:’|')ll (?:bring|need)|what we(?:’|')re looking for|you(?:’|')ll need to have)$/i.test(heading)) {
         section = required;
         continue;
       }
@@ -218,8 +218,10 @@ async function readResumePdf(file) {
 try {
   const imported = JSON.parse(sessionStorage.getItem("jobbers-resume-posting"));
   if (imported?.text) {
-    postingInput.value = imported.text;
-    document.getElementById("resume-status").textContent = `Loaded ${imported.title}.`;
+    if (imported.hasDescription !== false) postingInput.value = imported.text;
+    document.getElementById("resume-status").textContent = imported.hasDescription === false
+      ? `The description for ${imported.title} was unavailable. Paste it from the employer posting.`
+      : `Loaded ${imported.title}.`;
     sessionStorage.removeItem("jobbers-resume-posting");
   }
 } catch {
@@ -231,6 +233,11 @@ document.getElementById("resume-form").addEventListener("submit", async (event) 
   const submit = event.currentTarget.querySelector("button");
   if (submit.disabled || !resumeInput.files.length) return;
   const status = document.getElementById("resume-status");
+  if (!postingInput.value.trim()) {
+    status.textContent = "Add the employer’s job posting before creating a draft.";
+    postingInput.focus();
+    return;
+  }
   submit.disabled = true;
   resumeInput.disabled = true;
   status.textContent = "Reading your PDF…";
@@ -268,13 +275,16 @@ document.getElementById("resume-form").addEventListener("submit", async (event) 
 });
 
 document.getElementById("copy-resume").addEventListener("click", async () => {
+  const text = formattedResume().join("\n");
+  if (!text) {
+    exportStatus.textContent = "Add résumé text before copying.";
+    return;
+  }
   try {
-    await navigator.clipboard.writeText(formattedResume().join("\n"));
+    await navigator.clipboard.writeText(text);
     exportStatus.textContent = "Draft copied.";
   } catch {
-    draft.focus();
-    draft.select();
-    exportStatus.textContent = "Draft selected. Use your device’s copy command.";
+    exportStatus.textContent = "Clipboard access is unavailable. Use Download text to keep the selected section order.";
   }
 });
 
@@ -341,7 +351,12 @@ document.getElementById("save-resume-pdf").addEventListener("click", () => {
 });
 
 document.getElementById("download-resume").addEventListener("click", () => {
-  const url = URL.createObjectURL(new Blob([formattedResume().join("\n")], { type: "text/plain;charset=utf-8" }));
+  const text = formattedResume().join("\n");
+  if (!text) {
+    exportStatus.textContent = "Add résumé text before downloading.";
+    return;
+  }
+  const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
   const link = document.createElement("a");
   link.href = url;
   link.download = "tailored-resume.txt";

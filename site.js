@@ -27,14 +27,14 @@ const reviewedMetroJobs = [
   {
     id: "citi-261001616", company: "Citi", title: "AI Engineer – Startups & Partnerships",
     location: "Jersey City, NJ", role: "AI Engineer (Product & Application)", workplace: "Hybrid",
-    published: Date.parse("2026-10-19"), compensation: "$142,320–$213,480 annually",
+    published: Date.parse("2026-10-19T00:00:00-04:00"), compensation: "$142,320–$213,480 annually",
     url: "https://jobs.citi.com/job/jersey-city/ai-engineer-startups-and-partnerships/287/102161067024",
     summary: "Build and ship full-stack LLM applications and agent workflows for business teams. The role asks for experience deploying AI products in production and integrating backend services and APIs.",
   },
   {
     id: "jpmc-210762503", company: "JPMorganChase", title: "AI Engineer – Lead Software Engineer",
     location: "Jersey City, NJ", role: "AI Engineer (Product & Application)",
-    published: Date.parse("2026-10-09"), compensation: "$156,750–$215,000 base annually",
+    published: Date.parse("2026-10-09T00:00:00-04:00"), compensation: "$156,750–$215,000 base annually",
     url: "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1002/job/210762503/",
     summary: "Lead architecture and implementation for enterprise LLM applications and agent platforms. Own technical decisions on evaluation, observability, and deployment reliability.",
   },
@@ -95,6 +95,7 @@ const locationArea = byId("location-area");
 const filterControls = [role, locationArea, workplace, published, newOnly, savedOnly];
 let zipCoordinates;
 let nearby;
+let zipRequest = 0;
 let detailsOpener;
 let announcementTimer;
 let feedPending = false;
@@ -429,15 +430,17 @@ function openJobDetails(job, opener) {
   byId("detail-full").open = false;
   byId("detail-full").hidden = Boolean(job.reviewed);
   byId("detail-resume").onclick = () => {
-    const posting = employerDescription(job);
+    const posting = byId("detail-description");
     const lines = Array.from(posting.querySelectorAll("h3, p, li"))
       .filter((node) => !node.parentElement?.closest("li"))
       .map((node) => (node.localName === "li" ? "- " : "") + node.textContent.trim());
-    const body = job.summary || lines.join("\n").trim() || posting.textContent.trim();
+    const body = job.summary || ((job.descriptionHtml || job.descriptionText) &&
+      (lines.join("\n").trim() || posting.textContent.trim())) || "";
     try {
       sessionStorage.setItem("jobbers-resume-posting", JSON.stringify({
         title: `${job.title} at ${job.company}`,
         text: [job.title, job.company, body].join("\n\n"),
+        hasDescription: Boolean(body),
       }));
     } catch {
       // The résumé page also accepts pasted postings.
@@ -469,6 +472,7 @@ function jobDistance(locations) {
 }
 
 function clearNearby() {
+  zipRequest += 1;
   nearby = undefined;
   zipCode.value = "";
   zipCode.removeAttribute("aria-invalid");
@@ -489,6 +493,8 @@ async function applyNearby(event) {
   }
   const submit = event.currentTarget.querySelector("button");
   if (submit.disabled) return;
+  const request = ++zipRequest;
+  const current = () => request === zipRequest && zipCode.value.trim() === zip && Number(zipRadius.value) === radius;
   submit.disabled = true;
   try {
     if (!zipCoordinates) {
@@ -497,6 +503,7 @@ async function applyNearby(event) {
       if (!response.ok) throw new Error("ZIP coordinates unavailable");
       zipCoordinates = await response.json();
     }
+    if (!current()) return;
     const center = zipCoordinates[zip];
     if (!center) {
       zipStatus.textContent = "This ZIP code has no Census area. Try a nearby street-address ZIP.";
@@ -512,9 +519,10 @@ async function applyNearby(event) {
     limit = pageSize;
     renderJobs();
   } catch {
-    zipStatus.textContent = "ZIP lookup is unavailable. Try again.";
+    if (current()) zipStatus.textContent = "ZIP lookup is unavailable. Try again.";
   } finally {
     submit.disabled = false;
+    if (zipStatus.textContent === "Loading ZIP coordinates…") zipStatus.textContent = "";
   }
 }
 
@@ -573,7 +581,7 @@ function renderJobs(appendFrom = 0) {
   const query = search.value.trim().toLowerCase();
   const candidates = boards.flatMap((board) => {
     const snapshot = historyByBoard[board.slug];
-    return (snapshot?.jobs || []).map((job) => ({ ...job, key: `${board.slug}:${job.id}`, stale: board.failed }));
+    return (snapshot?.jobs || []).map((job) => ({ ...job, key: `${board.slug}:${job.id}`, stale: board.failed !== false }));
   });
   candidates.push(...reviewedMetroJobs.filter((job) => job.expires > now)
     .map((job) => ({ ...job, key: `reviewed:${job.id}` })));
@@ -588,7 +596,7 @@ function renderJobs(appendFrom = 0) {
         const area = locationAreaLabels[match.area];
         return area && match.display !== nycLabel ? `${match.display} (${area})` : match.display;
       }))].join(" · "),
-      sourceLocation: job.location,
+      sourceLocation: locations.map(({ label }) => label).join(" "),
       distance: nearby ? jobDistance(locations) : undefined,
       isNew: Boolean(job.discovered && now - job.discovered < week && !job.stale),
     }];
@@ -597,7 +605,7 @@ function renderJobs(appendFrom = 0) {
     (!nearby || job.distance <= nearby.radius) &&
     (!role.value || job.role === role.value) &&
     (!workplace.value || job.workplace === workplace.value) &&
-    (!published.value || (job.published && now - job.published <= Number(published.value) * day)) &&
+    (!published.value || (job.published > 0 && job.published <= now && now - job.published <= Number(published.value) * day)) &&
     (!newOnly.checked || job.isNew) &&
     (!savedOnly.checked || savedJobs.has(job.key)) &&
     `${job.title} ${job.company} ${job.location} ${job.sourceLocation}`.toLowerCase().includes(query)
@@ -642,12 +650,16 @@ function renderJobs(appendFrom = 0) {
     };
   }
   const list = byId("job-list");
+  const firstNew = appendFrom;
+  if (appendFrom && (list.children.length !== appendFrom ||
+    [...list.children].some((card, index) => card.dataset.jobKey !== results[index]?.key))) appendFrom = 0;
   const active = document.activeElement;
   const focusedKey = list.contains(active) ? active.dataset.jobControl : undefined;
   const focusedIndex = focusedKey ? [...list.children].indexOf(active.closest("li")) : -1;
-  const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
+  const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeZone: "America/New_York" });
   const cards = results.slice(appendFrom, limit).map((job) => {
     const item = element("li", "", "job");
+    item.dataset.jobKey = job.key;
     const details = element("div");
     const title = element("h3", job.title);
     if (job.isNew) title.append(element("span", "New", "badge"));
@@ -677,12 +689,16 @@ function renderJobs(appendFrom = 0) {
     save.setAttribute("aria-pressed", String(isSaved));
     save.dataset.jobControl = `save:${job.key}`;
     save.addEventListener("click", () => {
-      if (isSaved) savedJobs.delete(job.key);
-      else savedJobs.add(job.key);
       let message = isSaved ? "Job removed from saved jobs." : "Job saved.";
       try {
+        const latest = JSON.parse(localStorage.getItem(savedJobsKey));
+        if (Array.isArray(latest)) savedJobs = new Set(latest);
+        if (isSaved) savedJobs.delete(job.key);
+        else savedJobs.add(job.key);
         localStorage.setItem(savedJobsKey, JSON.stringify([...savedJobs]));
       } catch {
+        if (isSaved) savedJobs.delete(job.key);
+        else savedJobs.add(job.key);
         message += " This change is limited to this session.";
       }
       byId("save-status").textContent = message;
@@ -695,7 +711,7 @@ function renderJobs(appendFrom = 0) {
   if (appendFrom) list.append(...cards);
   else list.replaceChildren(...cards);
   more.hidden = results.length <= limit;
-  if (appendFrom) cards[0]?.querySelector("button").focus();
+  if (firstNew) (list.children[firstNew]?.querySelector("button") || byId("jobs-heading")).focus();
   if (focusedKey) {
     const equivalent = [...list.querySelectorAll("[data-job-control]")].find(
       (control) => control.dataset.jobControl === focusedKey
@@ -745,6 +761,7 @@ async function refreshJobs() {
     feedPending = false;
     renderJobs();
   } finally {
+    feedPending = false;
     refresh.removeAttribute("aria-disabled");
   }
 }
@@ -754,7 +771,7 @@ async function loadSignals() {
   const status = byId("signal-status");
   status.textContent = "Loading research notes…";
   try {
-    const response = await fetch("./doc/Early_Hiring_Signals.md", { cache: "no-cache" });
+    const response = await fetch("./doc/Early_Hiring_Signals.md", { cache: "no-cache", signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw new Error("Research file unavailable");
     const rows = (await response.text()).split(/\r?\n/)
       .filter((line) => line.startsWith("|"))
@@ -784,6 +801,17 @@ async function loadSignals() {
 }
 
 if (refresh) {
+  window.addEventListener("storage", (event) => {
+    if (event.key !== savedJobsKey) return;
+    try {
+      const latest = JSON.parse(event.newValue) || [];
+      if (!Array.isArray(latest)) return;
+      savedJobs = new Set(latest);
+      renderJobs();
+    } catch {
+      // Ignore invalid saved-job data.
+    }
+  });
   let backdropPointer;
   const onBackdrop = (event) => {
     if (event.target !== jobDetails) return false;
