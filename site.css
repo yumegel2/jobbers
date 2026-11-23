@@ -23,6 +23,25 @@ body { margin: 0; }
 .resume-form { display: grid; gap: 1rem; align-items: start; }
 .resume-form label, .draft-label { display: grid; gap: .5rem; min-width: 0; font-weight: 650; }
 .resume-form button { justify-self: start; }
+.resume-form input[type="file"] {
+  min-width: 0;
+  min-height: var(--target);
+  padding: .5rem;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  background: var(--field);
+}
+.resume-form input[type="file"]::file-selector-button {
+  min-height: var(--target);
+  margin-inline-end: .5rem;
+  padding: .5rem .75rem;
+  border: 0;
+  border-radius: .5rem;
+  background: var(--action);
+  color: var(--action-text);
+  font: inherit;
+  cursor: pointer;
+}
 .resume-form textarea, .draft-label textarea {
   width: 100%;
   padding: .75rem;

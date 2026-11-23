@@ -16,7 +16,7 @@
   </div></header>
   <main class="wrap" id="main" tabindex="-1">
     <section class="hero">
-      <div><h1>Tailor your résumé</h1><p>Compare a posting with your experience and bring your most relevant bullets to the top.</p></div>
+      <div><h1>Tailor your résumé</h1><p>Upload your résumé as a PDF and create an edited draft for a job posting.</p></div>
       <a href="./doc/Resume_Formats_and_Tailoring.md">Résumé guide</a>
     </section>
     <section aria-labelledby="compare-title">
@@ -24,14 +24,17 @@
       <p class="note">Your résumé stays in this tab. Jobbers processes it on your device.</p>
       <form id="resume-form" class="resume-form">
         <label>Job posting<textarea id="target-posting" rows="10" required placeholder="Paste the responsibilities and qualifications"></textarea></label>
-        <label>Your résumé<textarea id="source-resume" rows="10" required placeholder="Paste your résumé, with one bullet per line"></textarea></label>
+        <label>Your résumé PDF
+          <input id="source-resume" type="file" accept=".pdf,application/pdf" aria-describedby="pdf-hint" required>
+          <span id="pdf-hint" class="meta">Choose a PDF with selectable text, up to 20 MB.</span>
+        </label>
         <button type="submit">Create tailored draft</button>
       </form>
       <p id="resume-status" class="note" role="status"></p>
     </section>
     <section id="resume-results" aria-labelledby="draft-title" hidden>
       <h2 id="draft-title" tabindex="-1">Your tailored draft</h2>
-      <p class="note">Review the suggested evidence and edit your draft before sending it. Matches are based on shared terms.</p>
+      <p class="note">Review the wording and reading order before saving. Jobbers uses shared terms to prioritize experience and makes wording edits using only your existing résumé.</p>
       <ul id="requirement-matches" class="job-list"></ul>
       <label class="draft-label">Editable résumé<textarea id="tailored-resume" rows="15"></textarea></label>
       <div class="job-actions resume-actions">

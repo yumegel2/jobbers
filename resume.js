@@ -4,7 +4,7 @@ const postingInput = document.getElementById("target-posting");
 const resumeInput = document.getElementById("source-resume");
 const draft = document.getElementById("tailored-resume");
 const exportStatus = document.getElementById("export-status");
-const bullet = /^\s*(?:[-*•▪–]\s+|\d+[.)]\s+)/;
+const bullet = /^\s*(?:[-*•▪–●]\s+|\d+[.)]\s+)/;
 const stopWords = new Set(("and the for with from that this your you our are will have has using use used work working " +
   "strong experience ability skills years role team about preferred required qualifications requirements " +
   "build building built develop developed including across within into more can must should").split(" "));
@@ -75,9 +75,17 @@ function rankResume(resume, requirements) {
     return { requirement, line };
   });
   const reordered = [];
+  let revised = 0;
+  const preferredWording = requirements.join(" ");
   for (let index = 0; index < lines.length;) {
     if (!bullet.test(lines[index])) {
-      reordered.push(lines[index++]);
+      const original = lines[index];
+      const edited = /^\s*(?:I |Was responsible for )/i.test(original)
+        ? rewriteBullet(original, matches[index].some(Boolean) ? preferredWording : "")
+        : original;
+      if (edited !== original) revised += 1;
+      reordered.push(edited);
+      index += 1;
       continue;
     }
     const group = [];
@@ -87,9 +95,104 @@ function rankResume(resume, requirements) {
     }
     // Numbered items may depend on sequence. Reorder only unordered bullets.
     if (!group.some(({ text }) => /^\s*\d+[.)]/.test(text))) group.sort((a, b) => b.score - a.score);
-    reordered.push(...group.map(({ text }) => text));
+    for (const { text, score } of group) {
+      const edited = rewriteBullet(text, score ? preferredWording : "");
+      if (edited !== text) revised += 1;
+      reordered.push(edited);
+    }
   }
-  return { evidence, text: reordered.join("\n") };
+  return { evidence, revised, text: reordered.join("\n") };
+}
+
+function rewriteBullet(line, jobWording) {
+  const prefix = line.match(bullet)?.[0] || "";
+  let text = line.slice(prefix.length).trim()
+    .replace(/^I\s+/i, "")
+    .replace(/^Was responsible for (building|developing|maintaining|testing|managing|designing|deploying|writing)\b/i,
+      (_, verb) => ({
+        building: "Built", developing: "Developed", maintaining: "Maintained", testing: "Tested",
+        managing: "Managed", designing: "Designed", deploying: "Deployed", writing: "Wrote",
+      })[verb.toLowerCase()])
+    .replace(/\bin order to\b/gi, "to")
+    .replace(/\butilized\b/gi, "used")
+    .replace(/\butilizing\b/gi, "using");
+  if (/\bRAG\b/i.test(jobWording)) {
+    text = text.replace(/\bretrieval[- ]augmented generation\b(?!\s*\()/gi, "retrieval-augmented generation (RAG)");
+  }
+  if (/\bLLMs?\b/i.test(jobWording)) {
+    text = text.replace(/\blarge language models?\b(?!\s*\()/gi, (phrase) =>
+      `${phrase} (${phrase.toLowerCase().endsWith("s") ? "LLMs" : "LLM"})`);
+  }
+  return prefix + text.replace(/^[a-z]/, (letter) => letter.toUpperCase());
+}
+
+function pdfPageLines(items) {
+  const lines = [];
+  let current;
+  let ended = false;
+  for (const item of items) {
+    if (!("str" in item)) continue;
+    const x = item.transform[4];
+    const y = item.transform[5];
+    const height = Math.max(6, Math.abs(item.transform[3]), item.height || 0);
+    if (item.str) {
+      if (!current || ended || Math.abs(current.y - y) > Math.max(2, height * .35)) {
+        current = { text: "", x, y, height, right: x };
+        lines.push(current);
+      }
+      if (current.text && x - current.right > height * .12 && !/\s$/.test(current.text)) current.text += " ";
+      current.text += item.str;
+      current.right = x + item.width;
+    }
+    ended = item.hasEOL;
+  }
+  const output = [];
+  let previous;
+  let bulletStart;
+  for (const line of lines) {
+    const text = line.text.trim().replace(/^([•▪●])(?=\S)/, "$1 ");
+    if (!text) continue;
+    const gap = previous ? previous.y - line.y : 0;
+    if (previous && gap > Math.max(previous.height, line.height) * 1.65) {
+      output.push("");
+      bulletStart = undefined;
+    }
+    if (bullet.test(text)) {
+      bulletStart = line.x;
+      output.push(text);
+    } else if (bulletStart !== undefined && gap > 0 && line.x > bulletStart + 3 && gap <= previous.height * 1.65) {
+      output[output.length - 1] += " " + text;
+    } else {
+      bulletStart = undefined;
+      output.push(text);
+    }
+    previous = line;
+  }
+  return output.join("\n");
+}
+
+async function readResumePdf(file) {
+  if (file.size > 20 * 1024 * 1024) throw new Error("Choose a PDF smaller than 20 MB.");
+  const { getDocument, GlobalWorkerOptions } = await import("./vendor/pdfjs/pdf.min.mjs");
+  GlobalWorkerOptions.workerSrc = new URL("./vendor/pdfjs/pdf.worker.min.mjs", document.baseURI).href;
+  const task = getDocument({ data: await file.arrayBuffer(), isEvalSupported: false, useWasm: false });
+  try {
+    const pdf = await task.promise;
+    const pages = [];
+    for (let number = 1; number <= pdf.numPages; number += 1) {
+      const page = await pdf.getPage(number);
+      pages.push(pdfPageLines((await page.getTextContent()).items));
+    }
+    const text = pages.join("\n\n").trim();
+    if (!text) throw new Error("This PDF has no selectable text. Upload a text-based PDF or run OCR on the scan first.");
+    return text;
+  } catch (error) {
+    if (error.name === "PasswordException") throw new Error("Upload a PDF that can be opened without a password.");
+    if (error.name === "InvalidPDFException") throw new Error("Jobbers couldn't read this file as a PDF. Choose another PDF.");
+    throw error;
+  } finally {
+    await task.destroy();
+  }
 }
 
 try {
@@ -103,10 +206,26 @@ try {
   // Pasting a posting works without browser storage.
 }
 
-document.getElementById("resume-form").addEventListener("submit", (event) => {
+document.getElementById("resume-form").addEventListener("submit", async (event) => {
   event.preventDefault();
+  const submit = event.currentTarget.querySelector("button");
+  if (submit.disabled || !resumeInput.files.length) return;
+  const status = document.getElementById("resume-status");
+  submit.disabled = true;
+  resumeInput.disabled = true;
+  status.textContent = "Reading your PDF…";
   const requirements = requirementsFrom(postingInput.value);
-  const { evidence, text } = rankResume(resumeInput.value, requirements);
+  let source;
+  try {
+    source = await readResumePdf(resumeInput.files[0]);
+  } catch (error) {
+    status.textContent = error.message || "Jobbers couldn't read this PDF.";
+    return;
+  } finally {
+    submit.disabled = false;
+    resumeInput.disabled = false;
+  }
+  const { evidence, revised, text } = rankResume(source, requirements);
   const items = evidence.map(({ requirement, line }) => {
     const item = document.createElement("li");
     item.className = "signal";
@@ -122,7 +241,7 @@ document.getElementById("resume-form").addEventListener("submit", (event) => {
   exportStatus.textContent = "";
   document.getElementById("resume-results").hidden = false;
   document.getElementById("resume-status").textContent = requirements.length
-    ? `Compared ${requirements.length} posting priorities.`
+    ? `Compared ${requirements.length} posting priorities. Revised ${revised} ${revised === 1 ? "line" : "lines"}.`
     : "No clear priorities were found. Paste the responsibilities or qualifications to compare them.";
   document.getElementById("draft-title").focus();
 });
