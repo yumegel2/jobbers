@@ -543,7 +543,8 @@ function updateFilters() {
       clearFilter(control);
       limit = pageSize;
       renderJobs();
-      control.focus();
+      const collapsed = control.closest("details:not([open])");
+      (collapsed ? collapsed.querySelector("summary") : control).focus();
     });
     return button;
   });
@@ -801,6 +802,7 @@ async function loadSignals() {
 }
 
 if (refresh) {
+  document.querySelector(".filter-options").open = window.matchMedia("(min-width: 48rem)").matches;
   window.addEventListener("storage", (event) => {
     if (event.key !== savedJobsKey) return;
     try {

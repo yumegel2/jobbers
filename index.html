@@ -17,11 +17,10 @@
   </div></header>
   <main class="wrap" id="main" tabindex="-1">
     <section class="hero">
-      <div><h1>NYC metro AI job tracker</h1><p>Find open AI roles with a New York City metro location.</p></div>
-      <button id="refresh" type="button">Refresh jobs</button>
+      <div><h1>AI jobs in the NYC metro</h1><p>Explore seven AI engineering roles across New York City and the surrounding metro area.</p></div>
+      <div class="transit" aria-hidden="true"><i></i><i></i><i></i></div>
     </section>
     <section id="jobs" aria-labelledby="jobs-heading">
-      <div class="section-heading"><h2 id="jobs-heading" tabindex="-1">Open roles</h2><p id="feed-status" role="status"></p></div>
       <div class="filters">
         <label>Search jobs<input type="search" id="search" placeholder="Title, company, or location"></label>
         <form id="zip-search" class="zip-search">
@@ -30,16 +29,26 @@
           <button type="submit" class="save-job">Find nearby jobs</button>
           <p id="zip-status" class="meta" role="status"></p>
         </form>
-        <label>Role<select id="role"><option value="">All roles</option></select></label>
-        <label>Location area<select id="location-area"><option value="">All NYC metro locations</option><option value="nyc">New York City only</option><option value="suburbs">NYC metro outside the city</option></select></label>
-        <label>Work arrangement<select id="workplace"><option value="">Any arrangement</option><option value="On-site">On-site</option><option value="Hybrid">Hybrid</option><option value="Remote">Remote</option></select></label>
-        <label>Sort by<select id="sort"><option value="discovered">New to Jobbers</option><option value="distance" disabled>Nearest first</option><option value="published">Most recently published</option><option value="title">Job title A–Z</option></select></label>
-        <label>Published<select id="published"><option value="">Any date</option><option value="1">Past 24 hours</option><option value="7">Past week</option><option value="30">Past month</option></select></label>
-        <label class="check"><input type="checkbox" id="new-only"> New since first check</label>
-        <label class="check"><input type="checkbox" id="saved-only"> Saved jobs only</label>
+        <details class="filter-options" open>
+          <summary>Filter jobs</summary>
+          <div class="filter-fields">
+            <label>Role<select id="role"><option value="">All roles</option></select></label>
+            <label>Location area<select id="location-area"><option value="">All NYC metro locations</option><option value="nyc">New York City only</option><option value="suburbs">NYC metro outside the city</option></select></label>
+            <label>Work arrangement<select id="workplace"><option value="">Any arrangement</option><option value="On-site">On-site</option><option value="Hybrid">Hybrid</option><option value="Remote">Remote</option></select></label>
+            <label>Published<select id="published"><option value="">Any date</option><option value="1">Past 24 hours</option><option value="7">Past week</option><option value="30">Past month</option></select></label>
+            <label class="check"><input type="checkbox" id="new-only"> New since first check</label>
+            <label class="check"><input type="checkbox" id="saved-only"> Saved jobs only</label>
+          </div>
+          <p class="meta">New marks jobs found in the past seven days after your first check. Saved jobs stay in this browser while listed.</p>
+        </details>
       </div>
-      <p class="note">New marks jobs found in the past seven days after your first check. Date and work arrangement filters use employer-provided details. Saved jobs are stored in this browser and shown while listed.</p>
+
+      <div class="section-heading board-heading">
+        <div><h2 id="jobs-heading" tabindex="-1">Open roles</h2><p id="feed-status" role="status"></p></div>
+        <button id="refresh" class="save-job" type="button">Refresh jobs</button>
+      </div>
       <div class="results-toolbar">
+        <label>Sort by<select id="sort"><option value="discovered">New to Jobbers</option><option value="distance" disabled>Nearest first</option><option value="published">Most recently published</option><option value="title">Job title A–Z</option></select></label>
         <p id="results"></p>
         <div id="active-filters" class="active-filters" aria-label="Active filters" role="group" hidden></div>
       </div>

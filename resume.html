@@ -15,28 +15,58 @@
     <nav aria-label="Main navigation"><a href="./">Job board</a><a href="./signals.html">Early hiring signals</a><a href="./resume.html" aria-current="page">Résumé tailoring</a></nav>
   </div></header>
   <main class="wrap" id="main" tabindex="-1">
-    <section class="hero">
-      <div><h1>Tailor your résumé</h1><p>Upload your résumé as a PDF and create an edited draft for a job posting.</p></div>
+    <section class="tailoring-intro">
+      <div><h1>Tailor your résumé</h1><p>Start with your PDF, compare it with the role, and refine the wording before you apply.</p></div>
       <a href="./doc/Resume_Formats_and_Tailoring.md">Résumé guide</a>
     </section>
-    <section aria-labelledby="compare-title">
-      <h2 id="compare-title">Compare your résumé and posting</h2>
-      <p class="note">Your résumé stays in this tab. Jobbers processes it on your device.</p>
+    <section class="resume-panel" aria-labelledby="compare-title">
+      <h2 id="compare-title">Choose your résumé and target role</h2>
+      <p class="note">Jobbers processes your résumé on this device. You can save a reusable copy in this browser after reviewing your draft.</p>
       <form id="resume-form" class="resume-form">
-        <label>Job posting<textarea id="target-posting" rows="10" required placeholder="Paste the responsibilities and qualifications"></textarea></label>
-        <label>Your résumé PDF
+        <label id="source-choice" hidden>Résumé source<select id="resume-source"><option value="upload">Upload a PDF</option><option value="saved">Use my saved draft</option></select></label>
+        <label id="pdf-label">Your résumé PDF
           <input id="source-resume" type="file" accept=".pdf,application/pdf" aria-describedby="pdf-hint" required>
           <span id="pdf-hint" class="meta">Choose a PDF with selectable text, up to 20 MB.</span>
         </label>
+        <label>Target role or job posting<textarea id="target-posting" rows="5" required placeholder="Enter a role such as AI solutions engineer, or paste the posting"></textarea></label>
         <button type="submit">Create tailored draft</button>
       </form>
       <p id="resume-status" class="note" role="status"></p>
     </section>
     <section id="resume-results" aria-labelledby="draft-title" hidden>
       <h2 id="draft-title" tabindex="-1">Your tailored draft</h2>
-      <p class="note">Review the wording and reading order before saving. Jobbers uses shared terms to prioritize experience and makes wording edits using only your existing résumé.</p>
-      <ul id="requirement-matches" class="job-list"></ul>
-      <label class="draft-label">Editable résumé<textarea id="tailored-resume" rows="15"></textarea></label>
+      <div class="tailoring-workspace">
+        <aside class="coaching-panel" aria-labelledby="coach-title">
+          <h3 id="coach-title">Refine your draft</h3>
+          <label for="coaching-focus">What would you like to improve?</label>
+          <select id="coaching-focus">
+            <option value="fit">Show my fit for this role</option>
+            <option value="impact">Describe my impact</option>
+            <option value="wording">Tighten my wording</option>
+          </select>
+          <div id="coaching-advice" role="status"></div>
+          <button type="button" class="save-job" id="edit-passage">Edit this passage</button>
+          <form id="revision-form" class="revision-form">
+            <label for="revision-request">Request a revision</label>
+            <p id="revision-hint" class="meta">Try “emphasize Python,” “shorten my bullets,” or “put projects first.”</p>
+            <input id="revision-request" type="text" required aria-describedby="revision-hint">
+            <button type="submit">Preview revision</button>
+          </form>
+          <div id="revision-review" hidden>
+            <strong>Proposed change</strong>
+            <p id="revision-description"></p>
+            <blockquote id="revision-excerpt"></blockquote>
+            <button id="accept-revision" type="button">Apply revision</button>
+            <button id="skip-revision" class="save-job" type="button">Keep current draft</button>
+          </div>
+          <p id="revision-status" class="meta" role="status"></p>
+          <details><summary>Compare posting priorities</summary>
+            <p class="meta">Possible matches use shared wording from the uploaded PDF.</p>
+            <ul id="requirement-matches" class="job-list"></ul>
+          </details>
+        </aside>
+        <label class="draft-label">Editable résumé<textarea id="tailored-resume" rows="17"></textarea></label>
+      </div>
       <fieldset class="resume-design">
         <legend>Template and styling</legend>
         <label>Template<select id="resume-template"><option value="classic">Classic</option><option value="projects">Projects First</option></select></label>
@@ -52,10 +82,11 @@
         <button id="save-resume-pdf" type="button">Save as PDF</button>
         <button id="copy-resume" class="save-job" type="button">Copy draft</button>
         <button id="download-resume" class="save-job" type="button">Download text</button>
+        <button id="store-resume" class="save-job" type="button">Save draft in this browser</button>
       </div>
       <p id="export-status" class="note" role="status"></p>
     </section>
   </main>
-  <footer class="wrap"><a href="./doc/Requirements.md">AI job requirements</a></footer>
+  <footer class="wrap"><a href="./doc/Requirements.md">AI job requirements</a><button type="button" class="save-job" id="remove-stored" hidden>Delete saved résumé from this browser</button></footer>
 </body>
 </html>

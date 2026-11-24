@@ -1,0 +1,14 @@
+{
+  "name": "jobbers",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "pdf-lib": "1.17.1",
+    "playwright": "1.62.1"
+  }
+}

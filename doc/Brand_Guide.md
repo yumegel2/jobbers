@@ -4,16 +4,15 @@ Jobbers helps people find AI engineering jobs in the NYC metro area and spot ear
 
 ## Visual identity
 
-Keep the **Jobbers** wordmark and the square **J** mark. Use a dark navy canvas, slate cards, and periwinkle for primary actions. Reserve mint for the **New** badge and pair it with text. Use a single subtle navy-to-indigo gradient for page headers and flat surfaces for lists and filters.
+Keep the **Jobbers** wordmark and square **J** mark. Use charcoal for the header and mint for reading surfaces. Give each accent a consistent job across the site.
 
-| Use | Colors | Contrast |
+| Color | Purpose | Jobbers example |
 | --- | --- | --- |
-| Page and card surfaces | Canvas `#10141E`, card `#171F2E` | — |
-| Text on cards | Primary `#EFF2F8`, secondary `#BEC8DB` | 14.72:1 and 9.81:1 |
-| Links on cards | `#A9B7FF`, underlined | 8.57:1 |
-| Primary button | `#151C35` text on `#C5CBFF` | 10.69:1 |
-| New badge | `#ABF1D0` text on `#253F38` | 8.79:1 |
-| Control border and focus ring on cards | Border `#63738F`, ring `#B4D9FF` | 3.44:1 and 11.25:1 |
+| Charcoal `#292F36` | Make the most important information easy to scan. | Use for company names, job titles, and body text on mint (13.26:1). Underline charcoal links in job details. |
+| Teal `#4ECDC4` | Draw attention to the primary action. | Give **Apply** a teal fill and charcoal label (6.98:1). On mint, add a charcoal border so the button edge stays visible. |
+| Mint `#F7FFF7` | Give long-form content a consistent reading surface. | Use behind listings, benefits, and résumé previews. In the charcoal header, use mint for navigation text. |
+| Lavender `#A799B7` | Mark secondary information without competing with **Apply**. | Use as the fill for a **New** badge or an active filter chip. Charcoal labels (5.07:1) communicate the meaning in words. |
+| Slate violet `#8C86AA` | Make controls and keyboard focus easy to locate. | Outline ZIP and search fields on mint (3.37:1). Use an offset focus ring on mint or charcoal (3.93:1 on charcoal). Reserve this shade for outlines and indicators. |
 
 Use the system sans-serif stack. Set body text to `1rem` with `1.5` line height, page titles to `2rem` on mobile, card titles to `1.125rem`, and metadata to at least `0.875rem`. Use a spacing scale of 4, 8, 12, 16, 24, and 32px. Give cards a 12px radius and 16px padding.
 

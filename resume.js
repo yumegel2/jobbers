@@ -56,7 +56,7 @@ function requirementsFrom(posting) {
   return [...new Set(priorities.length ? priorities : fallback)].slice(0, 5);
 }
 
-function rankResume(resume, requirements) {
+function rankResume(resume, requirements, reviseWording = true) {
   const lines = resume.split(/\r?\n/);
   const targets = requirements.map(terms);
   const matches = lines.map((line) => {
@@ -80,7 +80,7 @@ function rankResume(resume, requirements) {
   for (let index = 0; index < lines.length;) {
     if (!bullet.test(lines[index])) {
       const original = lines[index];
-      const edited = /^\s*(?:I |Was responsible for )/i.test(original)
+      const edited = reviseWording && /^\s*(?:I |Was responsible for )/i.test(original)
         ? rewriteBullet(original, matches[index].some(Boolean) ? preferredWording : "")
         : original;
       if (edited !== original) revised += 1;
@@ -96,7 +96,7 @@ function rankResume(resume, requirements) {
     // Numbered items may depend on sequence. Reorder only unordered bullets.
     if (!group.some(({ text }) => /^\s*\d+[.)]/.test(text))) group.sort((a, b) => b.score - a.score);
     for (const { text, score } of group) {
-      const edited = rewriteBullet(text, score ? preferredWording : "");
+      const edited = reviseWording ? rewriteBullet(text, score ? preferredWording : "") : text;
       if (edited !== text) revised += 1;
       reordered.push(edited);
     }
@@ -228,10 +228,88 @@ try {
   // Pasting a posting works without browser storage.
 }
 
+const coachingFocus = document.getElementById("coaching-focus");
+const editPassage = document.getElementById("edit-passage");
+let draftRequirements = [];
+let suggestedPassage = "";
+
+function showCoaching() {
+  const lines = draft.value.split("\n").filter((line) => bullet.test(line));
+  const priority = draftRequirements[0];
+  let passage;
+  let advice;
+  if (coachingFocus.value === "fit") {
+    const keywords = terms(priority || "");
+    const score = (line) => [...terms(line)].filter((word) => keywords.has(word)).length;
+    passage = lines.filter(score).sort((a, b) => score(b) - score(a))[0];
+    advice = priority ? `Your target includes “${priority}”. ${passage ? "Which detail in this example best demonstrates that skill?" : "Where have you done similar work? Add a specific example if you have one."}` :
+      "Choose a responsibility from the posting. Which project or experience shows you can do it?";
+  } else if (coachingFocus.value === "impact") {
+    passage = lines.find((line) => !/\d/.test(line)) || lines[0];
+    advice = "What changed because of your work? Name the outcome, who benefited, or a result you can verify.";
+  } else {
+    passage = lines.slice().sort((a, b) => b.length - a.length)[0];
+    advice = "Start with what you did. Keep the action and its result, then cut phrases that repeat the same idea.";
+  }
+  suggestedPassage = passage || "";
+  const message = document.createElement("p");
+  message.textContent = advice;
+  const excerpt = document.createElement("blockquote");
+  excerpt.textContent = suggestedPassage;
+  document.getElementById("coaching-advice").replaceChildren(message, ...(passage ? [excerpt] : []));
+  editPassage.textContent = passage ? "Edit this passage" : "Edit draft";
+}
+
+coachingFocus.addEventListener("change", showCoaching);
+draft.addEventListener("change", showCoaching);
+editPassage.addEventListener("click", () => {
+  const start = draft.value.indexOf(suggestedPassage);
+  draft.focus();
+  if (suggestedPassage && start >= 0) draft.setSelectionRange(start, start + suggestedPassage.length);
+});
+
+const sourceSelect = document.getElementById("resume-source");
+const removeStored = document.getElementById("remove-stored");
+const storeResume = document.getElementById("store-resume");
+const storageKey = "jobbers-saved-resume-text";
+
+function refreshSources() {
+  let available = false;
+  try { available = Boolean(localStorage.getItem(storageKey)); } catch { /* PDF uploads still work. */ }
+  if (!available) sourceSelect.value = "upload";
+  document.getElementById("source-choice").hidden = !available;
+  removeStored.hidden = !available;
+  const upload = sourceSelect.value === "upload";
+  document.getElementById("pdf-label").hidden = !upload;
+  resumeInput.required = upload;
+  storeResume.textContent = available ? "Replace saved draft in this browser" : "Save draft in this browser";
+}
+sourceSelect.addEventListener("change", refreshSources);
+window.addEventListener("storage", refreshSources);
+refreshSources();
+storeResume.addEventListener("click", () => {
+  const text = formattedResume().join("\n");
+  if (!text) { exportStatus.textContent = "Add résumé text before saving."; return; }
+  try {
+    localStorage.setItem(storageKey, text);
+    refreshSources();
+    exportStatus.textContent = "Draft saved. Choose Use my saved draft for your next role.";
+  } catch { exportStatus.textContent = "Browser storage is unavailable. Download a copy instead."; }
+});
+removeStored.addEventListener("click", () => {
+  try {
+    localStorage.removeItem(storageKey);
+    refreshSources();
+    document.getElementById("resume-status").textContent = "Saved copy deleted from this browser.";
+    resumeInput.focus();
+  } catch { document.getElementById("resume-status").textContent = "Browser storage is unavailable."; }
+});
+
 document.getElementById("resume-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const submit = event.currentTarget.querySelector("button");
-  if (submit.disabled || !resumeInput.files.length) return;
+  if (submit.disabled) return;
+  const reuse = sourceSelect.value === "saved";
   const status = document.getElementById("resume-status");
   if (!postingInput.value.trim()) {
     status.textContent = "Add the employer’s job posting before creating a draft.";
@@ -240,11 +318,14 @@ document.getElementById("resume-form").addEventListener("submit", async (event) 
   }
   submit.disabled = true;
   resumeInput.disabled = true;
-  status.textContent = "Reading your PDF…";
-  const requirements = requirementsFrom(postingInput.value);
+  status.textContent = reuse ? "Reading saved draft…" : "Reading your PDF…";
+  const target = postingInput.value.trim();
+  const requirements = requirementsFrom(target);
+  if (!requirements.length && target.length <= 100 && !target.includes("\n")) requirements.push(target);
   let source;
   try {
-    source = await readResumePdf(resumeInput.files[0]);
+    source = reuse ? localStorage.getItem(storageKey) : await readResumePdf(resumeInput.files[0]);
+    if (!source) throw new Error("Choose a résumé PDF to continue.");
   } catch (error) {
     status.textContent = error.message || "Jobbers couldn't read this PDF.";
     return;
@@ -265,6 +346,11 @@ document.getElementById("resume-form").addEventListener("submit", async (event) 
   });
   document.getElementById("requirement-matches").replaceChildren(...items);
   draft.value = text;
+  resetRevision("");
+  revisionRequest.value = "";
+  draftRequirements = requirements;
+  coachingFocus.value = "fit";
+  showCoaching();
   updateResumePreview();
   exportStatus.textContent = "";
   document.getElementById("resume-results").hidden = false;
@@ -295,9 +381,9 @@ const spacingSelect = document.getElementById("resume-spacing");
 const previewNote = document.getElementById("preview-note");
 const resumeHeading = /^(?:(?:professional |work |relevant )?experience|(?:technical )?skills|(?:selected )?projects|education|(?:professional )?summary|certifications|publications|awards|volunteer experience)\s*:?$/i;
 
-function formattedResume() {
+function formattedResume(template = templateSelect.value) {
   const lines = draft.value.trim() ? draft.value.trim().split(/\r?\n/) : [];
-  if (templateSelect.value !== "projects") return lines;
+  if (template !== "projects") return lines;
   const experience = lines.findIndex((line) => /^(?:(?:professional|work|relevant) )?experience:?$/i.test(line.trim()));
   const projects = lines.findIndex((line) => /^(?:selected )?projects:?$/i.test(line.trim()));
   if (experience < 0 || projects < 0 || projects < experience) return lines;
@@ -306,6 +392,74 @@ function formattedResume() {
   while (section.at(-1)?.trim() === "") section.pop();
   lines.splice(experience, 0, ...section, "");
   return lines;
+}
+
+const revisionRequest = document.getElementById("revision-request");
+const revisionReview = document.getElementById("revision-review");
+const revisionStatus = document.getElementById("revision-status");
+let proposedDraft;
+
+function resetRevision(message) {
+  proposedDraft = undefined;
+  revisionReview.hidden = true;
+  revisionStatus.textContent = message;
+}
+
+document.getElementById("revision-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  resetRevision("");
+  const request = revisionRequest.value.trim().replace(/[.!?]+$/, "");
+  const emphasis = request.match(/^(?:please\s+)?(?:emphasi[sz]e|prioriti[sz]e|highlight|focus on)\s+(.+)$/i);
+  const original = draft.value;
+  let suggestion;
+  let description;
+  if (emphasis) {
+    suggestion = rankResume(original, [emphasis[1]], false).text;
+    description = "Bring matching bullets to the top of each list, keeping them with their original experience.";
+  } else if (/^(?:please\s+)?(?:shorten|tighten|condense)\b/i.test(request)) {
+    suggestion = original.split("\n").map((line) => {
+      if (!bullet.test(line)) return line;
+      return rewriteBullet(line, "").replace(/\bfor the purpose of\b/gi, "for")
+        .replace(/\bat the present time\b/gi, "currently").replace(/\ba total of\s+/gi, "")
+        .replace(/\bon a daily basis\b/gi, "daily");
+    }).join("\n");
+    description = "Simplify wordy phrases in your bullets.";
+  } else if (/\bprojects?\b/i.test(request) && /\b(first|before experience)\b/i.test(request)) {
+    suggestion = formattedResume("projects").join("\n");
+    description = "Move the Projects section ahead of Experience.";
+  } else {
+    resetRevision("Choose a skill to emphasize, ask to shorten bullets, or ask to put projects first.");
+    return;
+  }
+  if (suggestion.trim() === original.trim()) {
+    resetRevision("No edit to suggest for this request. Try another skill or edit the draft directly.");
+    return;
+  }
+  proposedDraft = suggestion;
+  document.getElementById("revision-description").textContent = description;
+  document.getElementById("revision-excerpt").textContent = suggestion;
+  revisionReview.hidden = false;
+  revisionStatus.textContent = "Revision ready to review.";
+  document.getElementById("accept-revision").focus();
+});
+
+document.getElementById("accept-revision").addEventListener("click", () => {
+  if (proposedDraft === undefined) return;
+  draft.value = proposedDraft;
+  showCoaching();
+  updateResumePreview();
+  resetRevision("Revision applied to your draft and preview.");
+  revisionRequest.value = "";
+  revisionRequest.focus();
+});
+document.getElementById("skip-revision").addEventListener("click", () => {
+  resetRevision("Current draft kept.");
+  revisionRequest.focus();
+});
+for (const field of [draft, revisionRequest, templateSelect]) {
+  field.addEventListener("input", () => {
+    if (!revisionReview.hidden) resetRevision("Preview a new revision using your latest changes.");
+  });
 }
 
 function updateResumePreview() {

@@ -10,6 +10,10 @@ Nearby search uses `zip-coordinates.json`, generated from the [2025 U.S. Census 
 
 The site checks 12 public employer boards on load, on demand, and every 15 minutes while the tab is visible. It matches titles and team names to the [seven AI roles](./doc/AI_JOB_ROLES.md) and requires a recognized NYC metro location. Individually reviewed listings show a check date and expire after a week. See [Jobbers features](./doc/Jobbers_Features.md) for the feed list.
 
+## Tests
+
+With Node.js 22 or newer, run `npm install`, `npx playwright install chromium`, and `npm test`. The browser tests start a temporary local server, use mock employer feeds, and generate sample PDFs. They cover job filters and recovery, hiring signals, résumé tailoring and templates, and selectable text in the exported PDF.
+
 This project contains research, role breakdowns, and architectural comparisons for the latest specialized artificial intelligence jobs across frontier labs (OpenAI, Anthropic, DeepMind), enterprise platforms (Palantir, Scale AI), and high-growth AI startups.
 
 ---
